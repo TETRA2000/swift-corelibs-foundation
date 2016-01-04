@@ -151,8 +151,7 @@ class TestNSURL : XCTestCase {
             result["parameterString"] = url.parameterString ?? kNullString
             result["relativePath"] = url.relativePath ?? kNullString
             result["isFileURL"] = url.fileURL ? "YES" : "NO"
-            // Not yet implemented
-            // result["standardizedURL"] = url.standardizedURL?.relativeString ?? kNullString
+            result["standardizedURL"] = url.standardizedURL?.relativeString ?? kNullString
             
             // Temporarily disabled because we're only checking string results
             // result["pathComponents"] = url.pathComponents ?? kNullString
@@ -168,7 +167,7 @@ class TestNSURL : XCTestCase {
         var differences = [String]()
         for (key, obj) in expected {
             // Skip non-string expected results
-            if ["port", "standardizedURL", "pathComponents"].contains(key) {
+            if ["port", "pathComponents"].contains(key) {
                 continue
             }
             if let stringObj = obj as? String {
@@ -212,13 +211,8 @@ class TestNSURL : XCTestCase {
                 XCTFail()
             }
             if let url = url {
-
-                // TODO: NSURL.standardizedURL isn't implemented yet.
-                var modifiedExpectedNSResult = expectedNSResult as! [String: Any]
-                modifiedExpectedNSResult["standardizedURL"] = nil
-                
                 let results = generateResults(url, pathComponent: inPathComponent, pathExtension: inPathExtension)
-                let (isEqual, differences) = compareResults(url, expected: modifiedExpectedNSResult, got: results)
+                let (isEqual, differences) = compareResults(url, expected: expectedNSResult as! [String: Any], got: results)
                 XCTAssertTrue(isEqual, "\(title): \(differences)")
             } else {
                 XCTAssertEqual(expectedCFResults as? String, kNullURLString)
