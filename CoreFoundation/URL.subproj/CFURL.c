@@ -5150,14 +5150,16 @@ static Boolean _CFURLHasFileURLScheme(CFURLRef url, Boolean *hasScheme)
     return ( result );
 }
 
-CFURLRef CFGetStandardizedURL(CFURLRef url)
+CFURLRef _CFCopyStandardizedURL(CFURLRef url)
 {
-    if (!CFURLCanBeDecomposed(url)) { return url; }
-
     CFAllocatorRef alloc = CFGetAllocator(url);
-    
+
+    if (!CFURLCanBeDecomposed(url)) {
+        return CFURLCreateWithString(alloc, CFURLGetString(url), CFURLGetBaseURL(url));
+    }
+
     CFURLComponentsRFC1808 components1808;
-    decomposeToRFC1808(url, &components1808);
+    _CFURLCopyComponents(url, kCFURLComponentDecompositionRFC1808, &components1808);
     CFArrayRef pathComponents = components1808.pathComponents;
     
     if (pathComponents == NULL) {
@@ -5168,9 +5170,11 @@ CFURLRef CFGetStandardizedURL(CFURLRef url)
             CFArrayAppendValue(array, CFSTR(""));
             pathComponents = array;
         } else {
-            return url;
+            CFURLRef resultURL = _CFURLCreateFromComponents(alloc, kCFURLComponentDecompositionRFC1808, &components1808);
+            return resultURL;
         }
     }
+    
     
     CFIndex len = CFArrayGetCount(pathComponents);
     
@@ -5178,7 +5182,7 @@ CFURLRef CFGetStandardizedURL(CFURLRef url)
     CFIndex resultLen = CFArrayGetCount(resultComponents);
     CFIndex pos = 0;
     
-    for (int i=0; i<len && 0 < resultLen; i++) {
+    for (CFIndex i=0; i<len && 0 < resultLen; i++) {
         CFStringRef component = CFArrayGetValueAtIndex(pathComponents, i);
         
         if (CFStringCompare(component, CFSTR("."), 0) == kCFCompareEqualTo) {
@@ -5209,7 +5213,13 @@ CFURLRef CFGetStandardizedURL(CFURLRef url)
     }
     
     components1808.pathComponents = resultComponents;
-    CFURLRef resultURL = composeFromRFC1808(alloc, &components1808);
+    CFURLRef resultURL = _CFURLCreateFromComponents(alloc, kCFURLComponentDecompositionRFC1808, &components1808);
+    
+    for(CFIndex i=0; i<resultLen; i++) {
+        CFMutableStringRef str =  (CFMutableStringRef) CFArrayGetValueAtIndex(resultComponents, i);
+        CFRelease(str);
+    }
+    CFRelease(resultComponents);
     
     return resultURL;
 }

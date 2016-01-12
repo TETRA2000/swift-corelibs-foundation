@@ -193,8 +193,8 @@ CFURLRef CFURLGetBaseURL(CFURLRef anURL);
  to request that none be.
  */
 
-CF_EXPORT
-CFURLRef CFGetStandardizedURL(CFURLRef url);
+
+CFURLRef _CFCopyStandardizedURL(CFURLRef url);
 
 /* Returns true if anURL conforms to RFC 1808 */
 CF_EXPORT
